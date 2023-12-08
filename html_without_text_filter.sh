@@ -5,12 +5,14 @@ MAILBOXES=()
 DESTINATION="HTML"
 NEW_ONLY=0
 COPY_OVER_MOVE=0
+TEST_RUN=0
+VERBOSE=0
 
 cmd_help() {
     cat <<EOF
 Usage:
   $PROGRAM -h
-  $PROGRAM -m <mailbox> [-m <mailbox] [-d <mailbox>] [-n] [-c]
+  $PROGRAM -m <mailbox> [-m <mailbox] [-d <mailbox>] [-n] [-c] [-t] [-v]
 
 Options:
   -h           Show this help text
@@ -18,6 +20,8 @@ Options:
   -d <mailbox> Destination mailbox (default: HTML)
   -n           Limit to new emails
   -c           Copy rather than move
+  -t           Perform a test/dry run
+  -v           Verbose output
 EOF
 }
 
@@ -55,13 +59,16 @@ operate() {
         if ! grep -qP '^Content-Type: text/plain' "${f}" \
             && ! grep -qP '^From: .*.*no-?reply.*@.*$' "${f}"; then
             sin_bin="$(perl -pe "s|${mailbox}|${DESTINATION}|" <<<"${f}")"
-            echo "${f}" "->" "${sin_bin}"
+            if [[ "${VERBOSE}" -eq 1 ]]; then
+                echo "${f}" "->" "${sin_bin}"
+            fi
+            if [[ "${TEST_RUN}" -eq 1 ]]; then
+                continue
+            fi
             if [[ "${COPY_OVER_MOVE}" -eq 0 ]]; then
-                echo "Not running yet"
-                # mv "${f}" "${sin_bin}"
+                mv "${f}" "${sin_bin}"
             else
-                echo "Not running yet"
-                # cp "${f}" "${sin_bin}"
+                cp "${f}" "${sin_bin}"
             fi
         fi
     done
@@ -97,6 +104,14 @@ while [[ "${#}" -gt 0 ]]; do
         -c)
             shift
             COPY_OVER_MOVE=1
+            ;;
+        -t)
+            shift
+            TEST_RUN=1
+            ;;
+        -v)
+            shift
+            VERBOSE=1
             ;;
         *)
             cmd_help

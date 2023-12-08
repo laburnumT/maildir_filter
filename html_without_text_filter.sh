@@ -40,10 +40,8 @@ check_mailbox() {
 
 operate() {
     local mailbox_dir="${1}"
-    local mailbox
+    local mailbox="${mailbox_dir##*/}"
     local html_files
-
-    mailbox="${mailbox_dir##*/}"
 
     if [[ "${NEW_ONLY}" -eq 1 ]]; then
         mailbox_dir="${mailbox_dir}/new"
